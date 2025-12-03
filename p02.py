@@ -11,7 +11,7 @@ for id_range in id_ranges:
     min_range, max_range = map(int, id_range.split("-"))
     for product_id in range(min_range, max_range + 1):
         product_id_str = str(product_id)
-        i = len(product_id_str)//2
+        i = len(product_id_str) // 2
 
         if product_id_str[:i] == product_id_str[i:]:
             invalid_id_sum_1 += product_id

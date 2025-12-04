@@ -1,26 +1,17 @@
-from aocd import data, submit
+from copy import deepcopy
 
-# data = """..@@.@@@@.
-# @@@.@.@.@@
-# @@@@@.@.@@
-# @.@@@@..@.
-# @@.@@@@.@@
-# .@@@@@@@.@
-# .@.@.@.@@@
-# @.@@@.@@@@
-# .@@@@@@@@.
-# @.@.@@@.@."""
+from aocd import data
 
 grid = [list(line) for line in data.splitlines()]
 width = len(grid[0])
 length = len(grid)
 
+first_accessible = 0
 accessible = 0
 removed = 0
-# import pudb;pu.db
 
 while True:
-    new_grid = grid.copy()
+    new_grid = deepcopy(grid)
     for y in range(width):
         for x in range(length):
             if grid[y][x] != "@":
@@ -51,6 +42,9 @@ while True:
                 accessible += 1
                 new_grid[y][x] = "."
 
+    if removed == 0:
+        first_accessible = accessible
+
     grid = new_grid
     removed += accessible
     if accessible == 0:
@@ -58,5 +52,5 @@ while True:
     else:
         accessible = 0
 
-# print(accessible)
-submit(removed)
+print("Part 1:", first_accessible)
+print("Part 2:", removed)

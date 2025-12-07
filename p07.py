@@ -1,35 +1,18 @@
 from collections import deque
 from functools import cache
 
-from aocd import data, submit
-
-# data = """.......S.......
-# ...............
-# .......^.......
-# ...............
-# ......^.^......
-# ...............
-# .....^.^.^.....
-# ...............
-# ....^.^...^....
-# ...............
-# ...^.^...^.^...
-# ...............
-# ..^...^.....^..
-# ...............
-# .^.^.^.^.^...^.
-# ..............."""
+from aocd import data
 
 
 @cache
-def dfs(x, y):
+def emit_tachyon(x, y):
     if (x, y) not in manifold:
         return 1
 
     if manifold[(x, y)] == "^":
-        return dfs(x - 1, y) + dfs(x + 1, y)
+        return emit_tachyon(x - 1, y) + emit_tachyon(x + 1, y)
 
-    return dfs(x, y + 1)
+    return emit_tachyon(x, y + 1)
 
 
 manifold = {}
@@ -45,7 +28,7 @@ for y, line in enumerate(data.splitlines()):
 queue = deque([emitter])
 hit_splitters = set()
 seen_beams = set()
-# import pudb;pu.db
+
 while queue:
     x, y = queue.popleft()
 
@@ -54,24 +37,20 @@ while queue:
 
         if (x, y) in manifold:
             if manifold[(x, y)] == ".":
-                manifold[(x, y)] = "|"
                 seen_beams.add((x, y))
-            elif manifold[(x, y)] == "^": # and (x, y) not in hit_splitters:
+
+            elif manifold[(x, y)] == "^":
                 hit_splitters.add((x, y))
-                manifold[(x-1, y)] = "|"
-                if (x-1, y) not in seen_beams:
-                    queue.append((x-1, y))
-                    seen_beams.add((x-1, y))
-                manifold[(x+1, y)] = "|"
-                if (x+1, y) not in seen_beams:
-                    queue.append((x+1, y))
-                    seen_beams.add((x+1, y))
+
+                if (x - 1, y) not in seen_beams:
+                    queue.append((x - 1, y))
+                    seen_beams.add((x - 1, y))
+
+                if (x + 1, y) not in seen_beams:
+                    queue.append((x + 1, y))
+                    seen_beams.add((x + 1, y))
+
                 break
 
-# print(sum(cell == "|" for cell in manifold.values()))
-# print(len(hit_splitters))
-# for y, line in enumerate(data.splitlines()):
-#     for x, _ in enumerate(line):
-#         print(manifold[(x, y)], end="")
-#     print()
-submit(dfs(*emitter))
+print("Part 1:", len(hit_splitters))
+print("Part 2:", emit_tachyon(*emitter))

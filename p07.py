@@ -1,4 +1,5 @@
 from collections import deque
+from functools import cache
 
 from aocd import data, submit
 
@@ -18,6 +19,18 @@ from aocd import data, submit
 # ...............
 # .^.^.^.^.^...^.
 # ..............."""
+
+
+@cache
+def dfs(x, y):
+    if (x, y) not in manifold:
+        return 1
+
+    if manifold[(x, y)] == "^":
+        return dfs(x - 1, y) + dfs(x + 1, y)
+
+    return dfs(x, y + 1)
+
 
 manifold = {}
 emitter = None
@@ -56,8 +69,9 @@ while queue:
                 break
 
 # print(sum(cell == "|" for cell in manifold.values()))
-submit(len(hit_splitters))
+# print(len(hit_splitters))
 # for y, line in enumerate(data.splitlines()):
 #     for x, _ in enumerate(line):
 #         print(manifold[(x, y)], end="")
 #     print()
+submit(dfs(*emitter))

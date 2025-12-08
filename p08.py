@@ -1,6 +1,6 @@
 from operator import mul
 from functools import reduce
-from itertools import combinations
+from itertools import combinations, count
 from heapq import heappush, heappop
 from math import sqrt
 
@@ -33,31 +33,17 @@ def dist(p, q):
     q1, q2, q3 = q
     return sqrt((p1 - q1)**2 + (p2 - q2)**2 + (p3 - q3)**2)
 
+
 junction_boxes = [tuple(map(int, line.split(","))) for line in data.splitlines()]
-# print(junction_boxes)
-# boxes.sort(key=camp_to_key(dist))
 
 box_distances = []
 for box1, box2 in combinations(junction_boxes, 2):
     heappush(box_distances, (dist(box1, box2), (box1, box2)))
 
-# for _ in range(10):
-#     closest_boxes = min(combinations(junction_boxes, 2), key=lambda boxes: dist(boxes[0], boxes[1]))
-#     box1, box2 = closest_boxes
-#     # junction_boxes.discard(box1)
-#     # junction_boxes.discard(box2)
-
-#     for i, circuit in enumerate(circuits):
-#         if box1 in circuit or box2 in circuit:
-#             circuits[i].add(box1)
-#             circuits[i].add(box2)
-#             break
-#     else:
-#         circuits.append({box1, box2})
 # import pudb# ;pu.db
 # while box_distances:
 circuits = []
-for x in range(1000):
+for conn in count(start=1):
     _, (box1, box2) = heappop(box_distances)
 
     changed_circuits = []
@@ -69,12 +55,24 @@ for x in range(1000):
 
     if not changed_circuits:
         circuits.append({box1, box2})
+    # elif len(changed_circuits) == len(circuits) == 2:
+    #     print("conn =", conn)
+    #     print(box1, box2)
+    #     print(box1[0] * box2[0])
+    #     break
     else:
         for changed_circuit in changed_circuits:
             circuits.remove(changed_circuit)
         circuits.append(reduce(set.union, changed_circuits))
 
-for circuit in circuits:
-    print(len(circuit), circuit)
+    if len(circuits) == 1 and len(circuits[0]) == len(junction_boxes):
+        # print(box1, box2)
+        # print(conn)
+        # print("ans:", box1[0] * box2[0])
+        submit(box1[0] * box2[0])
+        break
 
-submit(reduce(mul, [len(c) for c in sorted(circuits, key=len, reverse=True)[:3]]))
+# for circuit in circuits:
+#     print(len(circuit), circuit)
+
+# print("Part 1:", reduce(mul, [len(c) for c in sorted(circuits, key=len, reverse=True)[:3]]))

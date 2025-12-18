@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "advent-of-code-data>=2.1.0",
+    "shapely>=2.1.2",
 ]
 
 [dependency-groups]

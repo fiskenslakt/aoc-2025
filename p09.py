@@ -1,15 +1,7 @@
 from itertools import combinations
 
-from aocd import data, submit
-
-# data = """7,1
-# 11,1
-# 11,7
-# 9,7
-# 9,5
-# 2,5
-# 2,3
-# 7,3"""
+from aocd import data
+from shapely import Polygon, box
 
 
 def area(x1, y1, x2, y2):
@@ -19,9 +11,16 @@ def area(x1, y1, x2, y2):
 
 
 tiles = [tuple(map(int, tile.split(","))) for tile in data.splitlines()]
+polygon = Polygon(tiles)
 largest_area = 0
+largest_contained_area = 0
 
 for (x1, y1), (x2, y2) in combinations(tiles, 2):
     largest_area = max(largest_area, area(x1, y1, x2, y2))
 
-submit(largest_area)
+    rectangle = box(min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+    if polygon.contains(rectangle):
+        largest_contained_area = max(largest_contained_area, area(x1, y1, x2, y2))
+
+print("Part 1:", largest_area)
+print("Part 2:", largest_contained_area)

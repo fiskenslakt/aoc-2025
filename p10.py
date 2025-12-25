@@ -1,6 +1,7 @@
 import re
 from collections import deque
-# from heapq import heappop, heappush
+from functools import cache
+from itertools import chain, combinations
 
 from aocd import data, submit
 
@@ -9,68 +10,91 @@ from aocd import data, submit
 # [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
 # """
 
-# def cache(func):
-#     D = {}
-#     def inner(light_state, final_light_state, presses, buttons, last_pressed):
-#         key = (light_state, final_light_state)
-#         if key not in D:
-#             D[key] = func(light_state, final_light_state, presses, buttons, last_pressed)
-#         return D[key]
-#     return inner
+
+def powerset(iterable):
+    return chain.from_iterable(combinations(iterable, r) for r in range(len(iterable) + 1))
 
 
-# @cache
-# def dfs(light_state, final_light_state, presses, buttons, last_pressed):
-#     if light_state == final_light_state:
-#         return presses
+@cache
+def dfs(joltages, buttons):
+    if not any(joltages):
+        return 0
 
-#     press_options = []
+    joltage_parity = int("".join(str(j % 2) for j in joltages)[::-1], 2)
+    min_presses = float("inf")
 
-#     for button in buttons:
-#         button_mask = 0
-#         for li in map(int, button_pattern.findall(button)):
-#             button_mask += 2**li
+    for button_combo in powerset(buttons):
+        button_parity = 0
+        reductions = [0] * len(joltages)
 
-#         if button_mask != last_pressed:
-#             press_options.append(dfs(light_state ^ button_mask, final_light_state, presses + 1, buttons, button_mask))
+        for button in button_combo:
+            button_mask = 0
+            for b_idx in button_pattern.findall(button):
+                button_mask += 2 ** int(b_idx)
+                reductions[int(b_idx)] += 1
 
-#     return min(press_options)
+            button_parity ^= button_mask
+
+        if button_parity == joltage_parity:
+            new_joltages = []
+
+            possible = True
+            for j, r in zip(joltages, reductions):
+                diff = j - r
+                if diff < 0:
+                    possible = False
+                    break
+                new_joltages.append(diff // 2)
+
+            if not possible:
+                continue
+
+            presses = len(button_combo) + 2 * dfs(tuple(new_joltages), buttons)
+            min_presses = min(min_presses, presses)
+
+    return min_presses
 
 
 button_pattern = re.compile(r"(\d+)")
 
 machines = [line.split() for line in data.splitlines()]
 
-fewest_presses = 0
+light_indicator_fewest_presses = 0
+joltages_fewest_presses = 0
 # import pudb;pu.db
-for machine in machines:
+# print("total machines:", len(machines))
+for mi, machine in enumerate(machines):
+    # print(mi, machine)
     lights, *buttons, joltages = machine
     final_light_state = int(lights[1:-1].replace(".", "0").replace("#", "1")[::-1], 2)
 
-    # queue = deque([(0, 0, set())])
     queue = deque([(0, 0)])
     seen_states = set()
-    # queue = [(final_light_state, 0, 0, set())]
 
-    while queue:
-        light_state, presses = queue.popleft()
-        # final_state_diff, presses, light_state, seen_states = heappop(queue)
+    # while queue:
+    #     light_state, presses = queue.popleft()
 
-        if light_state == final_light_state:
-            fewest_presses += presses
-            break
+    #     if light_state == final_light_state:
+    #         light_indicator_fewest_presses += presses
+    #         break
 
-        for button in buttons:
-            button_mask = 0
-            for li in map(int, button_pattern.findall(button)):
-                button_mask += 2**li
+    #     for button in buttons:
+    #         button_mask = 0
+    #         for li in map(int, button_pattern.findall(button)):
+    #             button_mask += 2**li
 
-            new_light_state = light_state ^ button_mask
+    #         new_light_state = light_state ^ button_mask
 
-            if new_light_state not in seen_states:
-                # queue.append((new_light_state, presses + 1, seen_states | {new_light_state}))
-                queue.append((new_light_state, presses + 1))
-                seen_states.add(new_light_state)
-                # heappush(queue, (abs(final_light_state - new_light_state), presses + 1, new_light_state, seen_states | {new_light_state}))
+    #         if new_light_state not in seen_states:
+    #             queue.append((new_light_state, presses + 1))
+    #             seen_states.add(new_light_state)
 
-submit(fewest_presses)
+    final_joltages = tuple(map(int, button_pattern.findall(joltages)))
+
+    print(dfs(final_joltages, tuple(buttons)))
+    joltages_fewest_presses += dfs(final_joltages, tuple(buttons))
+    dfs.cache_clear()
+
+
+# print("Part 1:", light_indicator_fewest_presses)
+print(joltages_fewest_presses)
